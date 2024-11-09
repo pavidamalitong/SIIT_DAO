@@ -6,10 +6,39 @@ function Login() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const navigate = useNavigate(); 
+    const [error, setError] = useState(null);
 
-    const handleLogin = () => {
+    const handleLogin = async () => {
         console.log('Logging in with:', username, password);
-        navigate('/home');
+
+        try {
+            const response = await fetch("http://localhost:3001/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ username, password }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                if (data.data.faculty === 'สถาบันเทคโนโลยีนานาชาติสิรินธร'){
+                    console.log("Login successful:", data);
+                    navigate('/home');
+                }
+                else {
+                    console.log("Login successful:", data.faculty);
+                    setError("Only SIIT students are permitted");
+                }
+            } else {
+                console.error("Login failed:", data.message);
+                setError(data.message);
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            setError("Internal server error. Please try again later.");
+        }
     };
 
     return (
@@ -18,7 +47,7 @@ function Login() {
                 Welcome to <span className="highlight">SIIT DAO</span>
             </h2>
             <h3>Log In</h3>
-            
+
             <label>
                 Username
                 <input
@@ -40,6 +69,8 @@ function Login() {
             </label>
 
             <button className="login-button" onClick={handleLogin}>Log In</button>
+
+            {error && <p className="error-message">{error}</p>}
         </div>
     );
 }
