@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
 import WalletConnect from './WalletConnect';
+import { useGlobalState } from '../store';
 import '../styles.css';
 
 function Proposal() {
-  const [account, setAccount] = useState(null); // Store connected wallet address
+  // const [account, setAccount] = useState(null); // Store connected wallet address
+  const [account] = useGlobalState('connectedAccount');
   const [forCount, setForCount] = useState(2); // Initial "For" vote count
   const [againstCount, setAgainstCount] = useState(1); // Initial "Against" vote count
   const [hasVoted, setHasVoted] = useState(false); // Track if user has voted
 
-  const handleWalletConnect = (walletAddress) => {
-    setAccount(walletAddress);
-  };
+  // const handleWalletConnect = (walletAddress) => {
+  //   setAccount(walletAddress);
+  // };
 
   const handleVote = async (voteType) => {
     if (!account) {
@@ -60,13 +62,13 @@ function Proposal() {
       <header className="header">
         <div className="header-content">
           <h1>SIIT Event</h1>
-          <p>se.dao.org</p>
+          <p>se.dao.orc</p>
         </div>
-        <WalletConnect onConnect={handleWalletConnect} /> {/* Connect wallet button */}
+        <WalletConnect /> {/* Connect wallet button */}
       </header>
 
       <div className="content">
-        <div id="overlay" className="overlay"></div>
+        {/* <div id="overlay" className="overlay"></div> */}
 
         {/* Proposal Page Layout */}
         <div className="proposal-section">

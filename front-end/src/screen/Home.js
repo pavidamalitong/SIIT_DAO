@@ -1,190 +1,189 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { FiLogOut } from 'react-icons/fi';
+import WalletConnect from './WalletConnect'; 
+import CreateProposal from '../component/CreateProposal';
+import { setGlobalState, useGlobalState } from '../store';
+import { Link, useNavigate } from 'react-router-dom';
+import '../styles.css';
+
 
 const Home = () => {
-  // Example values for total proposals and treasury value; these could be dynamically fetched from an API
-    const totalProposals = 5;
+    const [showModal, setShowModal] = useState(false);
+    const [connectedAccount] = useGlobalState('connectedAccount');
+    const navigate = useNavigate();
+
+    const handleNewProposal = () => {
+        if (!connectedAccount) {
+            alert("Please connect your wallet to create a proposal.");
+            return;
+        }
+        setShowModal(true);
+    };
+
+    const handleLogout = () => {
+        setGlobalState('connectedAccount', null); // Clear connected wallet account
+        // + clear TU student account
+        navigate('/login'); // Navigate to the login screen
+    };
+
+    const totalProposals = 0;
     const treasuryValue = 300.0;
 
     return (
-        <div style={styles.container}>
-        {/* Header */}
-        <header style={styles.header}>
-            <div>
-            <h1 style={styles.title}>SIIT Event</h1>
-            <p style={styles.subtitle}>se.dao.orc</p>
-            </div>
-            <div style={styles.buttons}>
-            <button style={styles.newProposalButton}>+ New proposal</button>
-            <button style={styles.connectWalletButton}>Connect wallet</button>
-            <button style={styles.logoutButton}>
-                <FiLogOut style={styles.icon} />
-            </button>
-            </div>
-        </header>
+        <div className="App">
+            <header className="header">
+                <div className="header-content">
+                    <h1>SIIT Event</h1>
+                    <p>se.dao.orc</p>
+                </div>
+                <div className="buttons">
+                    <button className="button" onClick={handleNewProposal}>+ New Proposal</button>
+                    
+                    <WalletConnect />
 
-        {/* Summary */}
-        <div style={styles.summary}>
-            <div style={styles.summaryItem}>
-            <p>Total proposal</p>
-            <h2>{totalProposals}</h2>
-            </div>
-            <div style={styles.summaryItem}>
-            <p>Treasury value (ORC)</p>
-            <h2>{treasuryValue.toFixed(2)}</h2>
-            </div>
-        </div>
+                    <button className="logout-button" onClick={handleLogout}>
+                        <FiLogOut className="logout-icon" />
+                    </button>
+                </div>
+            </header>
+            
+            {showModal && <CreateProposal onClose={() => setShowModal(false)} />}
 
-        {/* Proposal List */}
-        <section>
+            <div style={styles.summary}>
+            <div style={styles.summaryItem}>
+                <p style={styles.summaryTitle}>Total proposals</p>
+                <h2 style={styles.summaryValue}>{totalProposals}</h2>
+            </div>
+            <div style={styles.summaryItem}>
+                <p style={styles.summaryTitle}>Treasury value (ORC)</p>
+                <h2 style={styles.summaryValue}>{treasuryValue.toFixed(2)}</h2>
+            </div>
+            </div>
+    
+            <section className="section" style={styles.section}>
             <h3 style={styles.sectionTitle}>All proposals</h3>
-            <ProposalCard 
-            title="SIIT Back to school event" 
-            proposer="0x1234...abcd" 
-            status="Active" 
-            forVotes={3} 
-            againstVotes={1} 
-            />
-            <ProposalCard 
-            title="SIIT Baan day event" 
-            proposer="0x5678...efgh" 
-            status="Executed" 
-            forVotes={5} 
-            againstVotes={0} 
-            />
-            <ProposalCard 
-            title="SIIT Openhouse" 
-            proposer="0x9abc...ijkl" 
-            status="Executed" 
-            forVotes={10} 
-            againstVotes={0} 
-            />
-        </section>
+                <ProposalCard 
+                    title="SIIT Back to school event" 
+                    proposer="0x1234567890abcdef1234567890abcdef12345678" 
+                    status="Active" 
+                    forVotes={3} 
+                    againstVotes={1} 
+                />
+                <ProposalCard 
+                    title="SIIT Baan day event" 
+                    proposer="0x567890abcdef1234567890abcdef1234567890ab"  
+                    status="Executed" 
+                    forVotes={5} 
+                    againstVotes={0} 
+                />
+            </section>
         </div>
-    );
+        );
     };
 
-    // ProposalCard component
-    const ProposalCard = ({ title, proposer, status, forVotes, againstVotes }) => {
-    return (
-        <div style={styles.proposalCard}>
-        <div style={styles.proposalInfo}>
-            <p style={styles.proposalTitle}>{title}</p>
-            <p style={styles.proposedBy}>Proposed by {proposer}</p>
-        </div>
-        <div style={styles.proposalStatus}>
-            <p>Status</p>
-            <strong>{status}</strong>
-        </div>
-        <div style={styles.votes}>
-            <p>For</p>
-            <strong>{forVotes}</strong>
-        </div>
-        <div style={styles.votes}>
-            <p>Against</p>
-            <strong>{againstVotes}</strong>
-        </div>
-        </div>
-    );
+    const shortenAddress = (address) => {
+        return `${address.slice(0, 6)}...${address.slice(-4)}`;
     };
 
-    // Styles
-    const styles = {
-    container: {
-        fontFamily: 'Arial, sans-serif',
-        padding: '20px',
-        maxWidth: '700px',
-        margin: '0 auto',
-        backgroundColor: '#f5fafa',
-    },
-    header: {
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: '20px',
-    },
-    title: {
-        fontSize: '24px',
-        fontWeight: 'bold',
-    },
-    subtitle: {
-        fontSize: '14px',
-        color: '#666',
-    },
-    buttons: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '10px',
-    },
-    newProposalButton: {
-        backgroundColor: '#3de0c4',
-        color: '#fff',
-        padding: '8px 12px',
-        border: 'none',
-        borderRadius: '5px',
-        cursor: 'pointer',
-    },
-    connectWalletButton: {
-        backgroundColor: '#3de0c4',
-        color: '#fff',
-        padding: '8px 12px',
-        border: 'none',
-        borderRadius: '5px',
-        cursor: 'pointer',
-    },
-    logoutButton: {
-        backgroundColor: '#3de0c4',
-        color: '#fff',
-        padding: '8px 12px',
-        border: 'none',
-        borderRadius: '5px',
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-    },
-    icon: {
-        fontSize: '18px',
-    },
+    const ProposalCard = ({ title, proposer, status, forVotes, againstVotes, id }) => {
+        return (
+            <Link to={`/proposal/${id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                <div style={styles.proposalCard}  className="hover-effect">
+                    <div style={styles.proposalInfo}>
+                        <p style={styles.proposalTitle}>{title}</p>
+                        <p style={styles.proposedBy}>Proposed by {shortenAddress(proposer)}</p>
+                    </div>
+                    <div style={styles.proposalSection}>
+                        <p style={styles.proposalHeader}>Status</p>
+                        <strong style={{ ...styles.proposalValue, color: '#06DECC' }}>{status}</strong>
+                    </div>
+                        <div style={styles.votes}>
+                        <p style={styles.proposalHeader} >For</p>
+                        <strong style={{ ...styles.proposalValue, color: '#15E754' }}>{forVotes}</strong>
+                    </div>
+                        <div style={styles.votes}>
+                        <p style={styles.proposalHeader}>Against</p>
+                        <strong style={{ ...styles.proposalValue, color: '#E52E3A' }}>{againstVotes}</strong>
+                    </div>
+                </div>
+            </Link>
+        );
+    };
+
+const styles = {
     summary: {
+        width: '100%',
         display: 'flex',
         justifyContent: 'space-between',
-        marginBottom: '20px',
         textAlign: 'center',
-    },
+        fontSize: '25px',
+        padding: '0 200px',
+        marginTop: '15px', 
+        },
     summaryItem: {
         flex: 1,
-    },
-    sectionTitle: {
-        fontSize: '18px',
+        },
+    summaryTitle: {
+        marginBottom: '0px', 
+        fontSize: '24px',
+        color: '#696969',
+        },
+    summaryValue: {
+        marginTop: '10px',
+        fontSize: '50px', 
         fontWeight: 'bold',
-        marginBottom: '10px',
-    },
+        color: '#333',
+        },
+    section: {
+        width: '100%',
+        padding: '0 80px'
+        },
+    sectionTitle: {
+        fontSize: '24px',
+        fontWeight: 'bold',
+        marginBottom: '15px',
+        },
     proposalCard: {
         display: 'grid',
         gridTemplateColumns: '2fr 1fr 1fr 1fr',
         alignItems: 'center',
-        padding: '10px',
+        padding: '20px',
         marginBottom: '10px',
-        border: '1px solid #3de0c4',
-        borderRadius: '5px',
-    },
-    proposalInfo: {
-        textAlign: 'left',
-    },
+        border: '2px solid #06DECC',
+        borderRadius: '15px',
+        backgroundColor: 'white'
+        },
+    proposalSection: {
+        textAlign: 'center',
+        padding: '5px 0',
+        },
+    proposalHeader: {
+        fontSize: '16px',
+        color: '#696969',
+        margin: '0 0 4px 0', 
+        },
+    proposalValue: {
+        fontSize: '19px',
+        fontWeight: 'bold',
+        color: '#333',
+        margin: 0,
+        },
     proposalTitle: {
+        fontSize: '20px',
         fontWeight: 'bold',
         margin: 0,
-    },
+        },
     proposedBy: {
-        color: '#666',
+        color: '#696969',
         margin: 0,
-    },
+        },
     proposalStatus: {
         textAlign: 'center',
-    },
+
+        },
     votes: {
         textAlign: 'center',
-    },
+        },
     };
-
+    
 export default Home;
