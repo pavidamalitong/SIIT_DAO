@@ -24,11 +24,6 @@ function WalletConnect({ onConnect }) {
     }
   };
 
-  const logoutWallet = () => {
-    setAccount(null);
-    onConnect(null); // Update parent on disconnect
-    console.log("Logged out");
-  };
 
   const shortenAddress = (address) => {
     return address ? `${address.slice(0, 6)}...${address.slice(-4)}` : "Connect Wallet";
@@ -43,12 +38,6 @@ function WalletConnect({ onConnect }) {
       >
         {shortenAddress(account)}
       </button>
-      
-      {account && (
-        <button onClick={logoutWallet} className="logout-button">
-          <img src="/logout.png" alt="Logout" className="logout-icon" />
-        </button>
-      )}
     </div>
   );
 }

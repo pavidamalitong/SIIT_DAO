@@ -9,7 +9,14 @@ function Login() {
 
     const handleLogin = () => {
         console.log('Logging in with:', username, password);
-        navigate('/home');
+        
+        // Perform API authentication here and on success:
+        if (username && password) { // Assume authentication success
+            sessionStorage.setItem('isLoggedIn', 'true');
+            navigate('/home');
+        } else {
+            alert('Invalid credentials, please try again.');
+        }
     };
 
     return (
