@@ -1,16 +1,15 @@
 import React, { useState } from 'react';
-import { FiLogOut } from 'react-icons/fi';
-import WalletConnect from './WalletConnect'; 
+import WalletConnect from '../component/WalletConnect';
+import LogoutButton from '../component/LogoutButton'; 
 import CreateProposal from '../component/CreateProposal';
-import { setGlobalState, useGlobalState } from '../store';
-import { Link, useNavigate } from 'react-router-dom';
+import { useGlobalState } from '../store';
+import { Link } from 'react-router-dom';
 import '../styles.css';
 
 
 const Home = () => {
     const [showModal, setShowModal] = useState(false);
     const [connectedAccount] = useGlobalState('connectedAccount');
-    const navigate = useNavigate();
 
     const handleNewProposal = () => {
         if (!connectedAccount) {
@@ -18,12 +17,6 @@ const Home = () => {
             return;
         }
         setShowModal(true);
-    };
-
-    const handleLogout = () => {
-        setGlobalState('connectedAccount', null); // Clear connected wallet account
-        // + clear TU student account
-        navigate('/login'); // Navigate to the login screen
     };
 
     const totalProposals = 0;
@@ -39,11 +32,10 @@ const Home = () => {
                 <div className="buttons">
                     <button className="button" onClick={handleNewProposal}>+ New Proposal</button>
                     
-                    <WalletConnect />
-
-                    <button className="logout-button" onClick={handleLogout}>
-                        <FiLogOut className="logout-icon" />
-                    </button>
+                    <div className="button-container">
+                        <WalletConnect />
+                        <LogoutButton />
+                    </div>
                 </div>
             </header>
             

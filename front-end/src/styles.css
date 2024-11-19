@@ -132,9 +132,10 @@ input[type="password"] {
     font-size: 20px;
 }
 
-.wallet-container {
+.button-container {
     display: flex;
-    align-items: center;
+    gap: 15px; 
+    align-items: center; 
 }
   
 .connect-wallet {
