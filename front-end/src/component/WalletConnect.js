@@ -1,11 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserProvider } from 'ethers';
-import { useGlobalState, setGlobalState } from '../store';
+import { setGlobalState, getGlobalState } from '../store';
 import '../styles.css';
 
-function WalletConnect() {
-  // const [account, setAccount] = useState(null);
-  const [account] = useGlobalState('connectedAccount');
+const WalletConnect = () => {
+  const [account, setAccount] = useState(getGlobalState('connectedAccount'));
 
   const connectWallet = async () => {
     if (window.ethereum) {
@@ -15,10 +14,8 @@ function WalletConnect() {
         
         const signer = await provider.getSigner();
         const userAddress = await signer.getAddress();
-
+        setAccount(userAddress);
         setGlobalState('connectedAccount', userAddress);
-        // setAccount(userAddress);
-        // onConnect(userAddress); // Pass connected account back to parent component
         console.log("Connected account:", userAddress);
       } catch (error) {
         console.error("Connection failed:", error);
@@ -28,11 +25,6 @@ function WalletConnect() {
     }
   };
 
-  // const logoutWallet = () => {
-  //   // setAccount(null);
-  //   onConnect(null); // Update parent on disconnect
-  //   console.log("Logged out");
-  // };
 
   const shortenAddress = (address) => {
     return address ? `${address.slice(0, 6)}...${address.slice(-4)}` : "Connect Wallet";
@@ -47,12 +39,6 @@ function WalletConnect() {
       >
         {shortenAddress(account)}
       </button>
-      
-      {/* {account && (
-        <button onClick={logoutWallet} className="logout-button">
-          <img src="/logout.png" alt="Logout" className="logout-icon" />
-        </button>
-      )} */}
     </div>
   );
 }
