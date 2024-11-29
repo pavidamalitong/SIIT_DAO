@@ -17,31 +17,39 @@ contract Voting {
         // Fetch the proposal from the ProposalManager contract
         ProposalManager.Proposal memory proposal = proposalManager.getProposal(proposalId);
 
-        // Ensure the proposal exists and is not executed
+        // Ensure the proposal is active and not already executed
         require(!proposal.executed, "Proposal already executed");
+        require(
+            proposal.status == ProposalManager.Status.Active,
+            "Proposal is not active"
+        );
         require(!votes[proposalId][msg.sender], "Already voted");
 
         // Mark as voted
         votes[proposalId][msg.sender] = true;
 
         // Update the proposal's votes
-        uint256 newForVotes = proposal.forVotes;
-        uint256 newAgainstVotes = proposal.againstVotes;
-
         if (support) {
-            newForVotes++;
+            proposal.forVotes++;
         } else {
-            newAgainstVotes++;
+            proposal.againstVotes++;
         }
 
-        // Update the proposal state on the ProposalManager contract
-        proposalManager.setProposal(proposalId, newForVotes, newAgainstVotes, proposal.executed);
+        // Update the proposal state in the ProposalManager contract
+        proposalManager.setProposal(
+            proposalId,
+            proposal.forVotes,
+            proposal.againstVotes,
+            proposal.executed
+        );
 
         emit Voted(proposalId, msg.sender, support);
     }
 
-    // Function to check if a user has voted on a specific proposal
-    function hasVoted(uint256 proposalId, address user) external view returns (bool) {
+    function hasVoted(
+        uint256 proposalId,
+        address user
+    ) external view returns (bool) {
         return votes[proposalId][user];
     }
 }

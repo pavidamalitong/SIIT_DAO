@@ -3,7 +3,7 @@ const { ethers } = require("hardhat");
 async function main() {
   const [deployer, beneficiary] = await ethers.getSigners();
 
-  const proposalManagerAddress = "0x09635F643e140090A9A8Dcd712eD6285858ceBef";
+  const proposalManagerAddress = "0x1429859428C0aBc9C2C47C8Ee9FBaf82cFA0F20f";
 
   // Create a contract instance
   const proposalManager = await ethers.getContractAt(
@@ -12,11 +12,11 @@ async function main() {
   );
 
   // Example proposal details
-  const title = "Build a community center";
+  const title = "Build a Computer Lab 3";
   const description =
     "Proposal to build a community center for local residents.";
   const beneficiaryAddress = beneficiary.address; 
-  const amount = ethers.parseEther("100"); 
+  const amount = ethers.parseEther("50"); 
 
   // Create a proposal
   console.log("Creating proposal...");

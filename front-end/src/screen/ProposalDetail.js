@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import WalletConnect from "../component/WalletConnect";
 import LogoutButton from "../component/LogoutButton";
-import web3, { Voting, ProposalManager } from "../web3"; // Ensure Voting and ProposalManager are properly configured
+import web3, { Voting, ProposalManager, Governance } from "../web3"; // Ensure Voting and ProposalManager are properly configured
 import { useGlobalState } from "../store";
 import "../styles.css";
 
@@ -12,6 +12,7 @@ const ProposalDetail = () => {
   const [proposal, setProposal] = useState(null); // Store proposal details
   const [forCount, setForCount] = useState(0);
   const [againstCount, setAgainstCount] = useState(0);
+  const [quorum, setQuorum] = useState(1);
   const [hasVoted, setHasVoted] = useState(false);
 
   useEffect(() => {
@@ -23,10 +24,14 @@ const ProposalDetail = () => {
         setProposal(proposalData);
         setForCount(Number(proposalData.forVotes));
         setAgainstCount(Number(proposalData.againstVotes));
+        setQuorum(Number(proposalData.quorum));
 
-        const userVoteStatus = await Voting.methods.hasVoted(id, account).call();
-        setHasVoted(userVoteStatus);
-        
+        if (account) {
+          const userVoteStatus = await Voting.methods
+            .hasVoted(id, account)
+            .call();
+          setHasVoted(userVoteStatus);
+        }
       } catch (error) {
         console.error("Error fetching proposal details:", error);
       }
@@ -59,6 +64,24 @@ const ProposalDetail = () => {
         }
 
         setHasVoted(true); // Disable voting after successful action
+
+        // After vote, check if proposal is ready for execution
+        const proposal = await ProposalManager.methods.getProposal(id).call();
+
+        if (Number(proposal.status) === 1) {
+          alert("Proposal has been approved!");
+        } else if (Number(proposal.status) === 2) {
+          alert("Proposal has been rejected!");
+        }
+
+        // Trigger proposal execution if needed
+        if (Number(proposal.status) === 1) {
+          await Governance.methods
+            .executeProposal(id)
+            .send({ from: account });
+          alert("Proposal has been executed.");
+        }
+
       } catch (error) {
         console.error("Vote transaction failed:", error);
         alert("Transaction failed. Please try again.");
@@ -97,10 +120,10 @@ const ProposalDetail = () => {
                   <strong>Quorum</strong>
                 </div>
                 <div className="info-item">
-                  <strong>Start</strong>
+                  <strong>Amount (ORC)</strong>
                 </div>
                 <div className="info-item">
-                  <strong>End</strong>
+                  <strong>Beneficiary</strong>
                 </div>
               </div>
               <div className="info-result">
@@ -108,18 +131,16 @@ const ProposalDetail = () => {
                   <span>{forCount + againstCount}</span>
                 </div>
                 <div className="info-item">
-                  <span>{proposal.quorum}</span>
+                  <span>{quorum}</span>
                 </div>
                 <div className="info-item">
                   <span>
-                    {new Date(
-                      Number(proposal.startTime) * 1000
-                    ).toLocaleString()}
+                    {web3.utils.fromWei(proposal.amount, "ether")}
                   </span>
                 </div>
                 <div className="info-item">
                   <span>
-                    {new Date(Number(proposal.endTime) * 1000).toLocaleString()}
+                    {proposal.beneficiary}
                   </span>
                 </div>
               </div>

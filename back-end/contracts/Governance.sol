@@ -19,9 +19,10 @@ contract Governance is Voting {
         ProposalManager.Proposal memory proposal = proposalManager.getProposal(proposalId);
 
         require(!proposal.executed, "Proposal already executed");
-        require(proposal.forVotes > proposal.againstVotes, "Proposal did not pass");
+        require(proposalManager.hasQuorum(proposalId), "Quorum not met");
+        require(proposal.status == ProposalManager.Status.Approved, "Proposal not approved");
 
-        // Update the proposal state on the ProposalManager contract
+        // Mark proposal as executed
         proposalManager.setProposal(proposalId, proposal.forVotes, proposal.againstVotes, true);
 
         // Transfer the amount to the beneficiary from the treasury

@@ -11,8 +11,8 @@ import web3, { Treasury, ProposalManager } from "../web3";
 const Home = () => {
   const [showModal, setShowModal] = useState(false);
   const [connectedAccount] = useGlobalState("connectedAccount");
+  const status = ["Active", "Approved", "Rejected"];
 
-  //const [account, setAccount] = useState(null);
   const [treasuryValue, setTreasuryValue] = useState(0);
   const [proposals, setProposals] = useState([]);
   const [totalProposals, setTotalProposals] = useState(0);
@@ -27,10 +27,6 @@ const Home = () => {
 
   useEffect(() => {
     const loadBlockchainData = async () => {
-      //   // Get connected accounts
-      //   const accounts = await web3.eth.getAccounts();
-      //   setAccount(accounts[0]);
-
       // Get Treasury Balance
       const balance = await Treasury.methods.getTreasuryBalance().call();
       const formattedBalance = web3.utils.fromWei(balance, "ether");
@@ -107,7 +103,7 @@ const Home = () => {
               id={index}
               title={proposal.title}
               proposer={proposal.proposer}
-              status={proposal.executed ? "Executed" : "Active"}
+              status={status[Number(proposal.status)]}
               forVotes={Number(proposal.forVotes)}
               againstVotes={Number(proposal.againstVotes)}
             />
