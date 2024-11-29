@@ -83,4 +83,8 @@ contract ProposalManager {
 
         emit ProposalUpdated(id, newForVotes, newAgainstVotes, newExecuted);
     }
+
+    function getProposalCount() public view returns (uint256) {
+        return nextProposalId;
+    }
 }

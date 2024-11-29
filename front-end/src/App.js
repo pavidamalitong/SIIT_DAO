@@ -13,9 +13,9 @@ function App() {
         <Route path="/" element={<Login />} />
 
         <Route element={<ProtectedRoute />}>
-          <Route path="/home" element={<Home />} />
-          <Route path="/proposal/:id" element={<ProposalDetail />} />
         </Route>
+        <Route path="/home" element={<Home />} />
+        <Route path="/proposal/:id" element={<ProposalDetail />} />
       </Routes>
     </Router>
   );

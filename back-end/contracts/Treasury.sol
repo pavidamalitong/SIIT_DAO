@@ -13,9 +13,16 @@ contract Treasury is Ownable {
 
     function transferToClub(address beneficiary, uint256 amount) external {
         // Ensure there are enough tokens to transfer
-        require(token.balanceOf(address(this)) >= amount, "Insufficient balance");
+        require(
+            token.balanceOf(address(this)) >= amount,
+            "Insufficient balance"
+        );
 
         // Transfer tokens from the contract to the beneficiary
         token.transfer(beneficiary, amount);
+    }
+
+    function getTreasuryBalance() public view returns (uint256) {
+        return token.balanceOf(address(this));
     }
 }
