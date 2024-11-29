@@ -1,50 +1,47 @@
 const hre = require("hardhat");
 
 async function main() {
-  // Get the contract factories
-  const Token = await hre.ethers.getContractFactory("SIITToken");
+  // Deploy SIITToken
+  const SIITToken = await hre.ethers.getContractFactory("SIITToken");
+  const siitToken = await SIITToken.deploy();
+  await siitToken.waitForDeployment();
+  console.log("SIITToken deployed to:", siitToken.target);
+
+  // Deploy ProposalManager
+  const ProposalManager = await hre.ethers.getContractFactory(
+    "ProposalManager"
+  );
+  const proposalManager = await ProposalManager.deploy();
+  await proposalManager.waitForDeployment();
+  console.log("ProposalManager deployed to:", proposalManager.target);
+
+  // Deploy Treasury
   const Treasury = await hre.ethers.getContractFactory("Treasury");
-  const Governance = await hre.ethers.getContractFactory("Governance");
-  const Proposal = await hre.ethers.getContractFactory("ProposalManager");
-  const Voting = await hre.ethers.getContractFactory("Voting");
-
-  // Deploy the contracts
-  console.log("Deploying SIIT Token...");
-  const token = await Token.deploy();
-  await token.waitForDeployment();
-  console.log("SIIT Token deployed to:", token.target);
-
-  console.log("Deploying Treasury...");
-  const treasury = await Treasury.deploy(token.target);
+  const treasury = await Treasury.deploy(siitToken.target);
   await treasury.waitForDeployment();
   console.log("Treasury deployed to:", treasury.target);
 
-  console.log("Deploying Governance...");
-  const governance = await Governance.deploy(treasury.target);
+  // Deploy Voting
+  const Voting = await hre.ethers.getContractFactory("Voting");
+  const voting = await Voting.deploy(proposalManager.target);
+  await voting.waitForDeployment();
+  console.log("Voting deployed to:", voting.target);
+
+  // Deploy Governance
+  const Governance = await hre.ethers.getContractFactory("Governance");
+  const governance = await Governance.deploy(
+    proposalManager.target,
+    treasury.target
+  );
   await governance.waitForDeployment();
   console.log("Governance deployed to:", governance.target);
 
-  console.log("Deploying Proposal Manager...");
-  const proposal = await Proposal.deploy();
-  await proposal.waitForDeployment();
-  console.log("Proposal Manager deployed to:", proposal.target);
-
-  console.log("Deploying Voting System...");
-  const voting = await Voting.deploy();
-  await voting.waitForDeployment();
-  console.log("Voting System deployed to:", voting.target);
-
-  console.log("Deployment completed!");
-  console.log({
-    SIITToken: token.target,
-    Treasury: treasury.target,
-    Governance: governance.target,
-    Proposal: proposal.target,
-    Voting: voting.target,
-  });
+  // Example Initialization: Mint tokens to Treasury
+  const mintAmount = hre.ethers.parseEther("1000"); // 1000 tokens
+  await siitToken.mint(treasury.target, mintAmount);
+  console.log("Minted", mintAmount.toString(), "tokens to Treasury");
 }
 
-// Catch errors
 main()
   .then(() => process.exit(0))
   .catch((error) => {
