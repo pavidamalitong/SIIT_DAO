@@ -11,11 +11,11 @@ const web3 = new Web3("http://127.0.0.1:8545");
 
 
 // Replace with actual deployed contract addresses from your local blockchain
-const SIITTokenAddress = "0x68B1D87F95878fE05B998F19b66F4baba5De1aed";
-const ProposalManagerAddress = "0x3Aa5ebB10DC797CAC828524e59A333d0A371443c";
-const TreasuryAddress = "0xc6e7DF5E7b4f2A278906862b61205850344D4e7d";
-const VotingAddress = "0x59b670e9fA9D0A427751Af201D676719a970857b";
-const GovernanceAddress = "0x4ed7c70F96B99c776995fB64377f0d4aB3B0e1C1";
+const SIITTokenAddress = "0x7a2088a1bFc9d81c55368AE168C2C02570cB814F";
+const ProposalManagerAddress = "0x09635F643e140090A9A8Dcd712eD6285858ceBef";
+const TreasuryAddress = "0xc5a5C42992dECbae36851359345FE25997F5C42d";
+const VotingAddress = "0x67d269191c92Caf3cD7723F116c85e6E9bf55933";
+const GovernanceAddress = "0xE6E340D132b5f46d1e472DebcD681B2aBc16e57E";
 
 // Initialize contract instances
 export const SIITToken = new web3.eth.Contract(

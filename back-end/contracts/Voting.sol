@@ -39,4 +39,9 @@ contract Voting {
 
         emit Voted(proposalId, msg.sender, support);
     }
+
+    // Function to check if a user has voted on a specific proposal
+    function hasVoted(uint256 proposalId, address user) external view returns (bool) {
+        return votes[proposalId][user];
+    }
 }

@@ -1,14 +1,41 @@
-import React, { useState } from 'react';
-import WalletConnect from '../component/WalletConnect';
-import LogoutButton from '../component/LogoutButton'; 
-import { useGlobalState } from '../store';
-import '../styles.css';
+import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import WalletConnect from "../component/WalletConnect";
+import LogoutButton from "../component/LogoutButton";
+import web3, { Voting, ProposalManager } from "../web3"; // Ensure Voting and ProposalManager are properly configured
+import { useGlobalState } from "../store";
+import "../styles.css";
 
 const ProposalDetail = () => {
-  const [account] = useGlobalState('connectedAccount');
-  const [forCount, setForCount] = useState(2); // Initial "For" vote count
-  const [againstCount, setAgainstCount] = useState(1); // Initial "Against" vote count
-  const [hasVoted, setHasVoted] = useState(false); // Track if user has voted
+  const { id } = useParams(); // Proposal ID from route params
+  const [account] = useGlobalState("connectedAccount");
+  const [proposal, setProposal] = useState(null); // Store proposal details
+  const [forCount, setForCount] = useState(0);
+  const [againstCount, setAgainstCount] = useState(0);
+  const [hasVoted, setHasVoted] = useState(false);
+
+  useEffect(() => {
+    const fetchProposalDetails = async () => {
+      try {
+        const proposalData = await ProposalManager.methods
+          .getProposal(id)
+          .call();
+        setProposal(proposalData);
+        setForCount(Number(proposalData.forVotes));
+        setAgainstCount(Number(proposalData.againstVotes));
+
+        const userVoteStatus = await Voting.methods.hasVoted(id, account).call();
+        setHasVoted(userVoteStatus);
+        
+      } catch (error) {
+        console.error("Error fetching proposal details:", error);
+      }
+    };
+
+    if (id) {
+      fetchProposalDetails();
+    }
+  }, [id, account]);
 
   const handleVote = async (voteType) => {
     if (!account) {
@@ -18,35 +45,23 @@ const ProposalDetail = () => {
 
     if (window.ethereum) {
       try {
-        const contractAddress = "0x0000000000000000000000000000000000000000"; // Replace with actual contract address
-        const tx = {
-          from: account,
-          to: contractAddress,
-          value: "0x0",
-          data: voteType === "For" ? "0x01" : "0x02",
-        };
+        await Voting.methods
+          .vote(id, voteType === "For")
+          .send({ from: account });
 
-        console.log("Transaction object prepared:", tx); 
+        alert(`Vote successfully cast as "${voteType}"!`);
 
-        const txHash = await window.ethereum.request({
-          method: 'eth_sendTransaction',
-          params: [tx],
-        });
-
-        console.log(`Vote ${voteType} transaction sent with hash:`, txHash);
-        alert(`Vote transaction sent with hash: ${txHash}`);
-
+        // Update vote counts based on user action
         if (voteType === "For") {
-          setForCount(forCount + 1);
+          setForCount((prev) => prev + 1);
         } else {
-          setAgainstCount(againstCount + 1);
+          setAgainstCount((prev) => prev + 1);
         }
 
-        // Set hasVoted to true to disable further voting
-        setHasVoted(true);
+        setHasVoted(true); // Disable voting after successful action
       } catch (error) {
         console.error("Vote transaction failed:", error);
-        alert("Transaction failed.");
+        alert("Transaction failed. Please try again.");
       }
     } else {
       alert("MetaMask is not installed.");
@@ -67,71 +82,97 @@ const ProposalDetail = () => {
       </header>
 
       <div className="content">
+        {proposal ? (
+          <div className="proposal-section">
+            <div className="proposal-title">{proposal.title}</div>
+            <div className="proposer">Proposed by {proposal.proposer}</div>
+            <div className="description">{proposal.description}</div>
 
-        {/* Proposal Page Layout */}
-        <div className="proposal-section">
-          <div className="proposal-title">SIIT Back to School Event</div>
-          <div className="proposer">Proposed by 0x...</div>
-          <div className="description">
-            Lorem ipsum dolor sit amet, consectetur adipisicing elit. Accusamus voluptatibus officiis corrupti dolore nihil eos quos, quod quo soluta, molestias eligendi, fuga natus iste iusto illo esse commodi. Lorem ipsum dolor sit amet, consectetur adipisicing elit. Accusamus voluptatibus officiis corrupti dolore nihil eos quos, quod quo soluta, molestias eligendi, fuga natus iste iusto illo esse commodi.
-          </div>
-          
-          {/* Voting Section */}
-          <div className="info-vote-container">
-            <div className="info-topic">
-              <div className="info-item"><strong>Total votes</strong></div>
-              <div className="info-item"><strong>Quorum</strong></div>
-              <div className="info-item"><strong>Start</strong></div>
-              <div className="info-item"><strong>End</strong></div>
-            </div>
-            <div className="info-result">
-              <div className="info-item"><span>3</span></div>
-              <div className="info-item"><span>4</span></div>
-              <div className="info-item"><span>30/10/2025 11:00 AM</span></div>
-              <div className="info-item"><span>31/10/2025 11:00 AM</span></div>
-            </div>
-            <div className="vote-section">
-              <div className="vote-container">
-                <div className="for">
-                  <span>For</span>
-                  <span id="voteForCount">{forCount}</span> {/* Display updated "For" count */}
+            <div className="info-vote-container">
+              <div className="info-topic">
+                <div className="info-item">
+                  <strong>Total votes</strong>
                 </div>
-                <button 
-                  id="voteForButton" 
-                  className={`vote-button for ${!account ? 'pre-disabled' : hasVoted ? 'voted-disabled' : ''}`}
-                  onClick={() => handleVote("For")}
-                  disabled={hasVoted} // Disable if already voted
-                >
-                  Vote
-                </button>
+                <div className="info-item">
+                  <strong>Quorum</strong>
+                </div>
+                <div className="info-item">
+                  <strong>Start</strong>
+                </div>
+                <div className="info-item">
+                  <strong>End</strong>
+                </div>
+              </div>
+              <div className="info-result">
+                <div className="info-item">
+                  <span>{forCount + againstCount}</span>
+                </div>
+                <div className="info-item">
+                  <span>{proposal.quorum}</span>
+                </div>
+                <div className="info-item">
+                  <span>
+                    {new Date(
+                      Number(proposal.startTime) * 1000
+                    ).toLocaleString()}
+                  </span>
+                </div>
+                <div className="info-item">
+                  <span>
+                    {new Date(Number(proposal.endTime) * 1000).toLocaleString()}
+                  </span>
+                </div>
+              </div>
 
-                <div className="against">
-                  <span>Against</span>
-                  <span id="voteAgainstCount">{againstCount}</span> {/* Display updated "Against" count */}
+              <div className="vote-section">
+                <div className="vote-container">
+                  <div className="for">
+                    <span>For</span>
+                    <span id="voteForCount">{forCount}</span>
+                  </div>
+                  <button
+                    id="voteForButton"
+                    className={`vote-button for ${
+                      !account
+                        ? "pre-disabled"
+                        : hasVoted
+                        ? "voted-disabled"
+                        : ""
+                    }`}
+                    onClick={() => handleVote("For")}
+                    disabled={hasVoted} // Disable if no account is connected or if the user has already voted
+                  >
+                    Vote
+                  </button>
+
+                  <div className="against">
+                    <span>Against</span>
+                    <span id="voteAgainstCount">{againstCount}</span>
+                  </div>
+                  <button
+                    id="voteAgainstButton"
+                    className={`vote-button against ${
+                      !account
+                        ? "pre-disabled"
+                        : hasVoted
+                        ? "voted-disabled"
+                        : ""
+                    }`}
+                    onClick={() => handleVote("Against")}
+                    disabled={hasVoted} // Disable if no account is connected or if the user has already voted
+                  >
+                    Vote
+                  </button>
                 </div>
-                <button 
-                  id="voteAgainstButton" 
-                  className={`vote-button against ${!account ? 'pre-disabled' : hasVoted ? 'voted-disabled' : ''}`}
-                  onClick={() => handleVote("Against")}
-                  disabled={hasVoted} // Disable if already voted
-                >
-                  Vote
-                </button>
               </div>
             </div>
           </div>
-
-          {/* Voters List */}
-          <div className="voters-list">
-            <p>Voters</p>
-            <div className="voter-item"><span>0x....</span> <span>For</span></div>
-            <div className="voter-item"><span>0x....</span> <span>For</span></div>
-            <div className="voter-item"><span>0x....</span> <span>Against</span></div>
-          </div>
-        </div>
+        ) : (
+          <p>Loading proposal details...</p>
+        )}
       </div>
     </div>
   );
-}
+};
 
 export default ProposalDetail;
