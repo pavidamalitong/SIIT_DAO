@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import WalletConnect from "../component/WalletConnect";
 import LogoutButton from "../component/LogoutButton";
-import web3, { Voting, ProposalManager, Governance } from "../web3"; // Ensure Voting and ProposalManager are properly configured
+import web3, { Voting, ProposalManager, Governance } from "../web3"; 
 import { useGlobalState } from "../store";
 import "../styles.css";
 
