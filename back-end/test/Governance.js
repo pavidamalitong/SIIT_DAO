@@ -12,10 +12,11 @@ describe("Governance", function () {
     Governance,
     governance,
     deployer,
-    addr1;
+    voter1,
+    beneficiary;
 
   before(async function () {
-    [deployer, addr1] = await ethers.getSigners();
+    [deployer, voter1, beneficiary] = await ethers.getSigners();
 
     // Deploy SIITToken
     Token = await ethers.getContractFactory("SIITToken");
@@ -24,10 +25,10 @@ describe("Governance", function () {
 
     // Deploy ProposalManager
     ProposalManager = await ethers.getContractFactory("ProposalManager");
-    proposalManager = await ProposalManager.deploy();
+    proposalManager = await ProposalManager.deploy(token.target);
     await proposalManager.waitForDeployment();
 
-    // Deploy Treasury with SIITToken address
+    // Deploy Treasury
     Treasury = await ethers.getContractFactory("Treasury");
     treasury = await Treasury.deploy(token.target);
     await treasury.waitForDeployment();
@@ -36,25 +37,30 @@ describe("Governance", function () {
     const treasuryAmount = ethers.parseEther("1000");
     await token.mint(treasury.target, treasuryAmount);
 
-    // Deploy Voting with ProposalManager address
+    // Deploy Voting
     Voting = await ethers.getContractFactory("Voting");
-    voting = await Voting.deploy(proposalManager.target);
+    voting = await Voting.deploy(proposalManager.target, token.target);
     await voting.waitForDeployment();
 
-    // Deploy Governance with ProposalManager and Treasury addresses
+    // Deploy Governance
     Governance = await ethers.getContractFactory("Governance");
     governance = await Governance.deploy(
       proposalManager.target,
-      treasury.target
+      treasury.target,
+      token.target
     );
     await governance.waitForDeployment();
+
+    // Mint tokens to voter1 for voting purposes
+    await token.mint(voter1.address, ethers.parseEther("10"));
 
     // Create a proposal
     await proposalManager.createProposal(
       "Proposal Title",
       "Proposal Description",
-      addr1.address,
-      ethers.parseEther("100")
+      beneficiary.address,
+      ethers.parseEther("100"),
+      1 // Set a quorum of 1 for testing
     );
   });
 
@@ -62,44 +68,82 @@ describe("Governance", function () {
     const proposalId = 0;
 
     // Vote "for" the proposal
-    await voting.vote(proposalId, true);
-    const updatedProposal = await proposalManager.proposals(proposalId);
+    await voting.connect(voter1).vote(proposalId, true);
+    const updatedProposal = await proposalManager.getProposal(proposalId);
     expect(updatedProposal.forVotes).to.equal(1);
     expect(updatedProposal.againstVotes).to.equal(0);
 
     // Execute the proposal
     await governance.executeProposal(proposalId);
-    const executedProposal = await proposalManager.proposals(proposalId);
+    const executedProposal = await proposalManager.getProposal(proposalId);
     expect(executedProposal.executed).to.equal(true);
 
     // Check if the beneficiary received the amount
-    const beneficiaryBalance = await token.balanceOf(addr1.address);
+    const beneficiaryBalance = await token.balanceOf(beneficiary.address);
     expect(beneficiaryBalance).to.equal(ethers.parseEther("100"));
+  });
+
+  it("Should not allow execution of a proposal if it is already executed", async function () {
+    const proposalId = 0;
+
+    // Attempt to execute the proposal
+    await expect(governance.executeProposal(proposalId)).to.be.revertedWith(
+      "Proposal already executed"
+    );
   });
 
   it("Should not allow execution of a proposal if not enough votes for", async function () {
     const proposalId = 1;
 
-    // Reset the proposal state
     await proposalManager.createProposal(
       "Another Proposal",
       "Another Proposal Description",
-      addr1.address,
-      ethers.parseEther("100")
+      beneficiary.address,
+      ethers.parseEther("100"),
+      1 
     );
 
     // Vote "against" the proposal
-    await voting.vote(proposalId, false);
+    await voting.connect(voter1).vote(proposalId, false);
 
     // Refetch the updated proposal after the vote
-    const updatedProposal = await proposalManager.proposals(proposalId);
+    const updatedProposal = await proposalManager.getProposal(proposalId);
 
     // Check if the proposal did not pass
     expect(updatedProposal.forVotes).to.equal(0);
     expect(updatedProposal.againstVotes).to.equal(1);
 
     // Attempt to execute the proposal
-    await expect(governance.executeProposal(proposalId))
-      .to.be.revertedWith("Proposal did not pass");
+    await expect(governance.executeProposal(proposalId)).to.be.revertedWith(
+      "Proposal not approved"
+    );
   });
+
+  it("Should not allow execution of a proposal if quorum is not met", async function () {
+    const proposalId = 2;
+
+    await proposalManager.createProposal(
+      "Another Proposal",
+      "Another Proposal Description",
+      beneficiary.address,
+      ethers.parseEther("100"),
+      2 
+    );
+
+    // Vote "against" the proposal
+    await voting.connect(voter1).vote(proposalId, false);
+
+    // Refetch the updated proposal after the vote
+    const updatedProposal = await proposalManager.getProposal(proposalId);
+
+    // Check if the proposal did not pass
+    expect(updatedProposal.forVotes).to.equal(0);
+    expect(updatedProposal.againstVotes).to.equal(1);
+
+    // Attempt to execute the proposal
+    await expect(governance.executeProposal(proposalId)).to.be.revertedWith(
+      "Quorum not met"
+    );
+  });
+
 });
