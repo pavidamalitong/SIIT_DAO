@@ -8,13 +8,12 @@ function LogoutButton() {
 
   const handleLogout = () => {
     // Clear wallet connection details
-    localStorage.removeItem("connectedAccount"); // Remove from localStorage
-    setGlobalState("connectedAccount", null); // Reset in global state
+    localStorage.removeItem("connectedAccount"); 
+    setGlobalState("connectedAccount", null); 
 
     // Clear session details
     sessionStorage.removeItem("isLoggedIn");
 
-    // Navigate to home or login page
     navigate("/");
   };
 

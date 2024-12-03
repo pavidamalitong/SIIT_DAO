@@ -9,7 +9,6 @@ function Login() {
     const [error, setError] = useState(null);
 
     const handleLogin = async () => {
-        console.log('Logging in with:', username, password);
 
         try {
             const response = await fetch("http://localhost:3001/login", {
@@ -24,12 +23,10 @@ function Login() {
 
             if (response.ok) {
                 if (data.data.faculty === 'สถาบันเทคโนโลยีนานาชาติสิรินธร'){
-                    console.log("Login successful:", data);
                     sessionStorage.setItem('isLoggedIn', 'true');
                     navigate('/home', { replace: true });
                 }
                 else {
-                    console.log("Login successful:", data.faculty);
                     setError("Only SIIT students are permitted");
                 }
             } else {

@@ -11,6 +11,7 @@ contract Treasury is Ownable {
         token = SIITToken(tokenAddress);
     }
 
+    // For Transfering tokens from the contract to the beneficiary
     function transferToClub(address beneficiary, uint256 amount) external {
         // Ensure there are enough tokens to transfer
         require(
@@ -18,10 +19,10 @@ contract Treasury is Ownable {
             "Insufficient balance"
         );
 
-        // Transfer tokens from the contract to the beneficiary
         token.transfer(beneficiary, amount);
     }
 
+    // For Retrieving Current Treasury Balance
     function getTreasuryBalance() public view returns (uint256) {
         return token.balanceOf(address(this));
     }

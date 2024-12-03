@@ -2,18 +2,19 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import WalletConnect from "../component/WalletConnect";
 import LogoutButton from "../component/LogoutButton";
-import web3, { Voting, ProposalManager, Governance } from "../web3"; 
+import web3, { Voting, ProposalManager, Governance } from "../web3";
 import { useGlobalState } from "../store";
 import "../styles.css";
 
 const ProposalDetail = () => {
-  const { id } = useParams(); // Proposal ID from route params
+  const { id } = useParams(); 
   const [account] = useGlobalState("connectedAccount");
-  const [proposal, setProposal] = useState(null); // Store proposal details
+  const [proposal, setProposal] = useState(null); 
   const [forCount, setForCount] = useState(0);
   const [againstCount, setAgainstCount] = useState(0);
   const [quorum, setQuorum] = useState(1);
   const [hasVoted, setHasVoted] = useState(false);
+  const [executed, setExecuted] = useState(false);
 
   useEffect(() => {
     const fetchProposalDetails = async () => {
@@ -25,6 +26,13 @@ const ProposalDetail = () => {
         setForCount(Number(proposalData.forVotes));
         setAgainstCount(Number(proposalData.againstVotes));
         setQuorum(Number(proposalData.quorum));
+
+        if (
+          Number(proposalData.status) === 1 ||
+          Number(proposalData.status) === 2
+        ) {
+          setExecuted(true);
+        }
 
         if (account) {
           const userVoteStatus = await Voting.methods
@@ -54,8 +62,6 @@ const ProposalDetail = () => {
           .vote(id, voteType === "For")
           .send({ from: account });
 
-        alert(`Vote successfully cast as "${voteType}"!`);
-
         // Update vote counts based on user action
         if (voteType === "For") {
           setForCount((prev) => prev + 1);
@@ -76,12 +82,9 @@ const ProposalDetail = () => {
 
         // Trigger proposal execution if needed
         if (Number(proposal.status) === 1) {
-          await Governance.methods
-            .executeProposal(id)
-            .send({ from: account });
+          await Governance.methods.executeProposal(id).send({ from: account });
           alert("Proposal has been executed.");
         }
-
       } catch (error) {
         console.error("Vote transaction failed:", error);
         alert("Transaction failed. Please try again.");
@@ -120,10 +123,10 @@ const ProposalDetail = () => {
                   <strong>Quorum</strong>
                 </div>
                 <div className="info-item">
-                  <strong>Amount (ORC)</strong>
+                  <strong>Beneficiary</strong>
                 </div>
                 <div className="info-item">
-                  <strong>Beneficiary</strong>
+                  <strong>Amount (ORC)</strong>
                 </div>
               </div>
               <div className="info-result">
@@ -134,14 +137,10 @@ const ProposalDetail = () => {
                   <span>{quorum}</span>
                 </div>
                 <div className="info-item">
-                  <span>
-                    {web3.utils.fromWei(proposal.amount, "ether")}
-                  </span>
+                  <span>{proposal.beneficiary}</span>
                 </div>
                 <div className="info-item">
-                  <span>
-                    {proposal.beneficiary}
-                  </span>
+                  <span>{web3.utils.fromWei(proposal.amount, "ether")}</span>
                 </div>
               </div>
 
@@ -154,14 +153,14 @@ const ProposalDetail = () => {
                   <button
                     id="voteForButton"
                     className={`vote-button for ${
-                      !account
+                      !account && !executed
                         ? "pre-disabled"
-                        : hasVoted
+                        : hasVoted | executed
                         ? "voted-disabled"
                         : ""
                     }`}
                     onClick={() => handleVote("For")}
-                    disabled={hasVoted} // Disable if no account is connected or if the user has already voted
+                    disabled={hasVoted | executed} // Disable if no account is connected or if the user has already voted
                   >
                     Vote
                   </button>
@@ -173,14 +172,14 @@ const ProposalDetail = () => {
                   <button
                     id="voteAgainstButton"
                     className={`vote-button against ${
-                      !account
+                      !account && !executed
                         ? "pre-disabled"
-                        : hasVoted
+                        : hasVoted | executed
                         ? "voted-disabled"
                         : ""
                     }`}
                     onClick={() => handleVote("Against")}
-                    disabled={hasVoted} // Disable if no account is connected or if the user has already voted
+                    disabled={hasVoted | executed} // Disable if no account is connected or if the user has already voted
                   >
                     Vote
                   </button>

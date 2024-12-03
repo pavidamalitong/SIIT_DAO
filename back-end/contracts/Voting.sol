@@ -56,6 +56,7 @@ contract Voting {
         emit Voted(proposalId, msg.sender, support);
     }
 
+    // For Checking that User has voted 
     function hasVoted(
         uint256 proposalId,
         address user

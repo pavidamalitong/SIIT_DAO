@@ -33,13 +33,13 @@ const Home = () => {
       const formattedBalance = web3.utils.fromWei(balance, "ether");
       setTreasuryValue(formattedBalance);
 
-      // Fetch proposal count
+      // Fetch Proposal Count
       const proposalCount = await ProposalManager.methods
         .getProposalCount()
         .call();
       setTotalProposals(Number(proposalCount));
 
-      // Fetch user token
+      // Fetch User Token
       if (connectedAccount) {
         const token = await SIITToken.methods
           .balanceOf(connectedAccount)
@@ -53,6 +53,7 @@ const Home = () => {
   }, [connectedAccount]);
 
   useEffect(() => {
+    // Fetch Proposal Details
     const fetchProposals = async () => {
       try {
         const fetchedProposals = [];
@@ -60,7 +61,6 @@ const Home = () => {
           const proposal = await ProposalManager.methods.getProposal(i).call();
           fetchedProposals.push(proposal);
         }
-        console.log("Fetched proposals:", fetchedProposals);
         setProposals(fetchedProposals);
       } catch (error) {
         console.error("Error fetching proposals:", error);
@@ -95,7 +95,7 @@ const Home = () => {
 
       <div style={styles.summary}>
         <div style={styles.summaryItem}>
-          <p style={styles.summaryTitle}>My Token (ORC)</p>
+          <p style={styles.summaryTitle}>Your token (ORC)</p>
           <h2 style={styles.summaryValue}>{userToken}</h2>
         </div>
         <div style={styles.summaryItem}>
@@ -158,7 +158,17 @@ const ProposalCard = ({
         </div>
         <div style={styles.proposalSection}>
           <p style={styles.proposalHeader}>Status</p>
-          <strong style={{ ...styles.proposalValue, color: "#06DECC" }}>
+          <strong
+            style={{
+              ...styles.proposalValue,
+              color:
+                status === "Approved"
+                  ? "#15E754"
+                  : status === "Rejected"
+                  ? "#E52E3A"
+                  : "#06DECC",
+            }}
+          >
             {status}
           </strong>
         </div>

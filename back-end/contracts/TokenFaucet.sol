@@ -10,6 +10,7 @@ contract TokenFaucet {
         siitToken = SIITToken(siitTokenAddress);
     }
 
+    // For Distibuting initial tokens to user
     function claimTokens() external {
         require(siitToken.balanceOf(msg.sender) == 0, "Already claimed");
         uint256 amount = 10 ether;

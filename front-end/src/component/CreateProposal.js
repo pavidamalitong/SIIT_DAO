@@ -8,6 +8,7 @@ const CreateProposal = ({ onClose }) => {
   const [address, setAddress] = useState("");
   const [amount, setAmount] = useState(0);
   const [description, setDescription] = useState("");
+  const [quorum, setQuorum] = useState(0);
   const [connectedAccount] = useGlobalState("connectedAccount");
 
   const handleSubmit = async (e) => {
@@ -20,7 +21,7 @@ const CreateProposal = ({ onClose }) => {
 
     try {
       // Ensure the required fields are filled
-      if (!title || !address || !amount || !description) {
+      if (!title || !address || !amount || !description || !quorum) {
         alert("Please fill in all fields.");
         return;
       }
@@ -31,11 +32,11 @@ const CreateProposal = ({ onClose }) => {
           title,
           description,
           address,
-          web3.utils.toWei(amount.toString(), "ether")
+          web3.utils.toWei(amount.toString(), "ether"),
+          quorum
         )
         .send({ from: connectedAccount });
 
-      console.log("Proposal created successfully:", tx);
       alert("Proposal created successfully!");
 
       // Close the modal after submission
@@ -80,6 +81,14 @@ const CreateProposal = ({ onClose }) => {
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
+            required
+          />
+
+          <label>Quorum</label>
+          <input
+            type="number"
+            value={quorum}
+            onChange={(e) => setQuorum(e.target.value)}
             required
           />
 

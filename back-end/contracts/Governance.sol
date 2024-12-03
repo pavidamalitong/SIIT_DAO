@@ -19,6 +19,7 @@ contract Governance is Voting {
         // Fetch the proposal from the ProposalManager contract
         ProposalManager.Proposal memory proposal = proposalManager.getProposal(proposalId);
 
+        // Ensure the proposal met all requirements before execute
         require(!proposal.executed, "Proposal already executed");
         require(proposalManager.hasQuorum(proposalId), "Quorum not met");
         require(proposal.status == ProposalManager.Status.Approved, "Proposal not approved");

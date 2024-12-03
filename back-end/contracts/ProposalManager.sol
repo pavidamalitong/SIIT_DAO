@@ -20,14 +20,13 @@ contract ProposalManager {
         uint256 forVotes;
         uint256 againstVotes;
         bool executed;
-        uint quorum;
+        uint256 quorum;
         Status status;
     }
 
     SIITToken public siitToken;
     mapping(uint256 => Proposal) public proposals;
     uint256 public nextProposalId;
-    uint256 public quorum = 1; // Set a default quorum value
 
     constructor(address siitTokenAddress) {
         siitToken = SIITToken(siitTokenAddress);
@@ -38,7 +37,8 @@ contract ProposalManager {
         string title,
         address proposer,
         address beneficiary,
-        uint256 amount
+        uint256 amount,
+        uint256 quorum
     );
 
     event ProposalUpdated(
@@ -57,11 +57,13 @@ contract ProposalManager {
         _;
     }
 
+    // For Creating Proposal
     function createProposal(
         string calldata title,
         string calldata description,
         address beneficiary,
-        uint256 amount
+        uint256 amount,
+        uint256 quorum
     ) external onlyTokenHolders returns (uint256) {
         proposals[nextProposalId] = Proposal(
             nextProposalId,
@@ -81,16 +83,32 @@ contract ProposalManager {
             title,
             msg.sender,
             beneficiary,
-            amount
+            amount,
+            quorum
         );
         return nextProposalId++;
     }
 
+
+    // For Retrieving Proposal Details
     function getProposal(uint256 id) external view returns (Proposal memory) {
         require(id < nextProposalId, "Proposal does not exist");
         return proposals[id];
     }
 
+    // For Counting All Proposals
+    function getProposalCount() public view returns (uint256) {
+        return nextProposalId;
+    }
+
+    // For Checking if the quorum is met
+    function hasQuorum(uint256 proposalId) public view returns (bool) {
+        Proposal storage proposal = proposals[proposalId];
+        uint256 totalVotes = proposal.forVotes + proposal.againstVotes;
+        return totalVotes >= proposal.quorum;
+    }
+
+    // For Updating Votes and Execution status
     function setProposal(
         uint256 id,
         uint256 newForVotes,
@@ -101,7 +119,6 @@ contract ProposalManager {
 
         Proposal storage proposal = proposals[id];
 
-        // Ensure the proposal is not executed already
         require(!proposal.executed, "Proposal already executed");
 
         proposal.forVotes = newForVotes;
@@ -126,18 +143,7 @@ contract ProposalManager {
         );
     }
 
-    function getProposalCount() public view returns (uint256) {
-        return nextProposalId;
-    }
-
-    // Function to check if the quorum is met
-    function hasQuorum(uint256 proposalId) public view returns (bool) {
-        Proposal storage proposal = proposals[proposalId];
-        uint256 totalVotes = proposal.forVotes + proposal.againstVotes;
-        return totalVotes >= proposal.quorum;
-    }
-
-    // Update proposal status
+    // For Updating Proposal Status
     function setProposalStatus(uint256 proposalId, Status _status) public {
         Proposal storage proposal = proposals[proposalId];
         proposal.status = _status;

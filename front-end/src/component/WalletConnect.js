@@ -24,14 +24,12 @@ const WalletConnect = () => {
 
         setAccount(userAddress);
         setGlobalState("connectedAccount", userAddress);
-        localStorage.setItem("connectedAccount", userAddress); // Save to localStorage
-        console.log("Connected account:", userAddress);
+        localStorage.setItem("connectedAccount", userAddress);
 
         // Automatically claim tokens
         const tx = await TokenFaucet.methods
           .claimTokens()
           .send({ from: userAddress });
-        console.log("Tokens claimed successfully!", tx);
       } catch (error) {
         console.error("Connection failed:", error);
       }
@@ -60,9 +58,9 @@ const WalletConnect = () => {
   return (
     <div className="wallet-container">
       <button
-        onClick={account ? null : connectWallet} // Disable onClick if account is connected
+        onClick={account ? null : connectWallet} 
         className={`connect-wallet ${account ? "connected" : ""}`}
-        disabled={!!account} // Disable the button when connected
+        disabled={!!account} 
       >
         {shortenAddress(account)}
       </button>

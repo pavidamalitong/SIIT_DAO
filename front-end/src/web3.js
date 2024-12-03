@@ -10,13 +10,13 @@ import TokenFaucetABI from "./artifacts/contracts/TokenFaucet.sol/TokenFaucet.js
 // Initialize Web3 instance for local Hardhat network
 const web3 = new Web3("http://127.0.0.1:8545");
 
-// Replace with actual deployed contract addresses from your local blockchain
-const SIITTokenAddress = "0x9A676e781A523b5d0C0e43731313A708CB607508";
-const ProposalManagerAddress = "0x0B306BF915C4d645ff596e518fAf3F9669b97016";
-const TreasuryAddress = "0x959922bE3CAee4b8Cd9a407cc3ac1C251C2007B1";
-const VotingAddress = "0x9A9f2CCfdE556A7E9Ff0848998Aa4a0CFD8863AE";
-const GovernanceAddress = "0x68B1D87F95878fE05B998F19b66F4baba5De1aed";
-const TokenFaucetAddress = "0x3Aa5ebB10DC797CAC828524e59A333d0A371443c";
+// Replace with actual deployed contract addresses from local blockchain
+const SIITTokenAddress = "0x4ed7c70F96B99c776995fB64377f0d4aB3B0e1C1";
+const ProposalManagerAddress = "0x322813Fd9A801c5507c9de605d63CEA4f2CE6c44";
+const TreasuryAddress = "0xa85233C63b9Ee964Add6F2cffe00Fd84eb32338f";
+const VotingAddress = "0x4A679253410272dd5232B3Ff7cF5dbB88f295319";
+const GovernanceAddress = "0x7a2088a1bFc9d81c55368AE168C2C02570cB814F";
+const TokenFaucetAddress = "0x09635F643e140090A9A8Dcd712eD6285858ceBef";
 
 // Initialize contract instances
 export const SIITToken = new web3.eth.Contract(
