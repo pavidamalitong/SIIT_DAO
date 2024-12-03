@@ -6,7 +6,7 @@ import { useGlobalState } from "../store";
 import { Link } from "react-router-dom";
 import "../styles.css";
 
-import web3, { Treasury, ProposalManager } from "../web3";
+import web3, { Treasury, SIITToken, ProposalManager } from "../web3";
 
 const Home = () => {
   const [showModal, setShowModal] = useState(false);
@@ -14,6 +14,7 @@ const Home = () => {
   const status = ["Active", "Approved", "Rejected"];
 
   const [treasuryValue, setTreasuryValue] = useState(0);
+  const [userToken, setUserToken] = useState(0);
   const [proposals, setProposals] = useState([]);
   const [totalProposals, setTotalProposals] = useState(0);
 
@@ -37,10 +38,19 @@ const Home = () => {
         .getProposalCount()
         .call();
       setTotalProposals(Number(proposalCount));
+
+      // Fetch user token
+      if (connectedAccount) {
+        const token = await SIITToken.methods
+          .balanceOf(connectedAccount)
+          .call();
+        const formattedToken = web3.utils.fromWei(token, "ether");
+        setUserToken(formattedToken);
+      }
     };
 
     loadBlockchainData();
-  }, []);
+  }, [connectedAccount]);
 
   useEffect(() => {
     const fetchProposals = async () => {
@@ -84,6 +94,10 @@ const Home = () => {
       {showModal && <CreateProposal onClose={() => setShowModal(false)} />}
 
       <div style={styles.summary}>
+        <div style={styles.summaryItem}>
+          <p style={styles.summaryTitle}>My Token (ORC)</p>
+          <h2 style={styles.summaryValue}>{userToken}</h2>
+        </div>
         <div style={styles.summaryItem}>
           <p style={styles.summaryTitle}>Total proposals</p>
           <h2 style={styles.summaryValue}>{totalProposals}</h2>

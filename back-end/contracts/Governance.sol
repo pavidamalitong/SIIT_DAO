@@ -4,12 +4,13 @@ pragma solidity ^0.8.0;
 import "./Treasury.sol";
 import "./Voting.sol";
 import "./ProposalManager.sol";
+import "./SiitToken.sol";
 
 contract Governance is Voting {
     Treasury public treasury;
 
-    constructor(address proposalManagerAddress, address treasuryAddress) 
-        Voting(proposalManagerAddress) 
+    constructor(address proposalManagerAddress, address treasuryAddress, address siitTokenAddress) 
+        Voting(proposalManagerAddress, siitTokenAddress) 
     {
         treasury = Treasury(treasuryAddress);
     }

@@ -3,6 +3,8 @@ import { BrowserProvider } from "ethers";
 import { setGlobalState, getGlobalState } from "../store";
 import "../styles.css";
 
+import web3, { TokenFaucet } from "../web3";
+
 const WalletConnect = () => {
   const [account, setAccount] = useState(
     getGlobalState("connectedAccount") ||
@@ -24,6 +26,12 @@ const WalletConnect = () => {
         setGlobalState("connectedAccount", userAddress);
         localStorage.setItem("connectedAccount", userAddress); // Save to localStorage
         console.log("Connected account:", userAddress);
+
+        // Automatically claim tokens
+        const tx = await TokenFaucet.methods
+          .claimTokens()
+          .send({ from: userAddress });
+        console.log("Tokens claimed successfully!", tx);
       } catch (error) {
         console.error("Connection failed:", error);
       }

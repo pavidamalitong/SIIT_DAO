@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "./SiitToken.sol";
+
 contract ProposalManager {
     enum Status {
         Active,
@@ -22,9 +24,14 @@ contract ProposalManager {
         Status status;
     }
 
+    SIITToken public siitToken;
     mapping(uint256 => Proposal) public proposals;
     uint256 public nextProposalId;
     uint256 public quorum = 1; // Set a default quorum value
+
+    constructor(address siitTokenAddress) {
+        siitToken = SIITToken(siitTokenAddress);
+    }
 
     event ProposalCreated(
         uint256 id,
@@ -42,12 +49,20 @@ contract ProposalManager {
         Status status
     );
 
+    modifier onlyTokenHolders() {
+        require(
+            siitToken.balanceOf(msg.sender) >= 1 ether,
+            "Insufficient SIITToken balance"
+        );
+        _;
+    }
+
     function createProposal(
         string calldata title,
         string calldata description,
         address beneficiary,
         uint256 amount
-    ) external returns (uint256) {
+    ) external onlyTokenHolders returns (uint256) {
         proposals[nextProposalId] = Proposal(
             nextProposalId,
             title,

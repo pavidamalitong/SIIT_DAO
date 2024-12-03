@@ -11,7 +11,7 @@ async function main() {
   const ProposalManager = await hre.ethers.getContractFactory(
     "ProposalManager"
   );
-  const proposalManager = await ProposalManager.deploy();
+  const proposalManager = await ProposalManager.deploy(siitToken.target);
   await proposalManager.waitForDeployment();
   console.log("ProposalManager deployed to:", proposalManager.target);
 
@@ -23,7 +23,7 @@ async function main() {
 
   // Deploy Voting
   const Voting = await hre.ethers.getContractFactory("Voting");
-  const voting = await Voting.deploy(proposalManager.target);
+  const voting = await Voting.deploy(proposalManager.target, siitToken.target);
   await voting.waitForDeployment();
   console.log("Voting deployed to:", voting.target);
 
@@ -31,15 +31,29 @@ async function main() {
   const Governance = await hre.ethers.getContractFactory("Governance");
   const governance = await Governance.deploy(
     proposalManager.target,
-    treasury.target
+    treasury.target,
+    siitToken.target
   );
   await governance.waitForDeployment();
   console.log("Governance deployed to:", governance.target);
 
-  // Example Initialization: Mint tokens to Treasury
-  const mintAmount = hre.ethers.parseEther("1000"); // 1000 tokens
+  // Deploy TokenFaucet
+  const TokenFaucet = await hre.ethers.getContractFactory("TokenFaucet");
+  const tokenFaucet = await TokenFaucet.deploy(siitToken.target);
+  await tokenFaucet.waitForDeployment();
+  console.log("TokenFaucet deployed to:", tokenFaucet.target);
+
+  // Initialization: Mint tokens to Treasury
+  const mintAmount = hre.ethers.parseEther("1000"); 
   await siitToken.mint(treasury.target, mintAmount);
   console.log("Minted", mintAmount.toString(), "tokens to Treasury");
+
+  // Initialization: Fund TokenFaucet
+  const faucetAmount = hre.ethers.parseEther("500"); 
+  await siitToken.mint(tokenFaucet.target, faucetAmount);
+  console.log("Minted", faucetAmount.toString(), "tokens to TokenFaucet");
+
+  console.log("Deployment complete!");
 }
 
 main()
